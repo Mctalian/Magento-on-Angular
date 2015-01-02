@@ -76,6 +76,7 @@ trait Cart {
     {
         $this->frontEndSession();
 
+
         $session    = \Mage::getSingleton('checkout/session');
         $quote      = $session->getQuote();
         $items      = $quote->getAllItems();

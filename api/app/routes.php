@@ -28,4 +28,17 @@ Route::get('/currencies', 'CurrenciesController@getCurrencies');
 Route::get('/account', 'AccountController@getAccount');
 Route::post('/account/login', 'AccountController@login');
 Route::get('/account/logout', 'AccountController@logout');
+
 Route::post('/account/register', 'AccountController@register');
+
+Route::get('/content/{identifier}', 'ContentController@getContent');
+
+Route::get('/checkout/state', 'OrderController@getState');
+
+Route::post('checkout/setShippingAddress', 'OrderController@setShippingAddress');
+Route::post('checkout/setBillingAddress', 'OrderController@setBillingAddress');
+
+Route::post('checkout/setPaymentMethod', 'OrderController@setPaymentMethod');
+Route::post('checkout/setShippingMethod', 'OrderController@setShippingMethod');
+Route::post('checkout/setDiscountCode', 'OrderController@setDiscountCode');
+Route::get('checkout/countryList', 'OrderController@getCountryList');
