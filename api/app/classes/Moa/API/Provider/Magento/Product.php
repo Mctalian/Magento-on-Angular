@@ -43,23 +43,63 @@ trait Product {
         /** @var Mage_CatalogInventory_Model_Stock_Item $stockModel */
         $stockModel = \Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
 
-        return array(
+        $gallery = array();
+        foreach ($product->getMediaGalleryImages() as $image) {
+            array_push($gallery, $image->getUrl());
+            // echo $image->getUrl();
+        }  
+
+        $ids = array();
+        $categoryIds = (int) $product->getCategoryIds();
+        $categoryId  = $categoryIds[0];
+        $type        = \Mage::getModel('catalog/category')->load($categoryId);
+
+        foreach ($product->getCategoryIds() as $id) {
+            array_push($ids, (int) $id);
+
+            // Add any parent IDs as well.
+            $category = \Mage::getModel('catalog/category')->load($id);
+
+            if ($category->parent_id) {
+                $parentCategory = \Mage::getModel('catalog/category')->load($category->parent_id);
+
+                if ($parentCategory->parent_id) {;
+                    array_push($ids, (int) $parentCategory->parent_id);
+                }
+
+                array_push($ids, (int) $category->parent_id);
+            }
+        }
+
+        $attributeSetCollection = \Mage::getResourceModel('eav/entity_attribute_set_collection') ->load();
+
+        $products = array(
             'id'            => $product->getId(),
             'sku'           => $product->getSku(),
             'name'          => $product->getName(),
             'type'          => $product->getTypeId(),
             'quantity'      => (int) $stockModel->getQty(),
             'friendUrl'     => $friendModel->canEmailToFriend() ? \Mage::app()->getHelper('catalog/product')->getEmailToFriendUrl($product) : null,
+            'weight'     => $product->getData("weight"),
             'price'         => (float) $product->getPrice(),
             'colour'        => (int) $product->getData('color'),
             'manufacturer'  => (int) $product->getData('manufacturer'),
             'description'   => nl2br(trim($product->getDescription())),
+            'short_description'   => nl2br(trim($product->getData("short_description"))),
             'largeImage'    => (string) str_replace('localhost', self::IMAGE_PATH, $product->getMediaConfig()->getMediaUrl($product->getData('image'))),
-            'similar'       => $product->getRelatedProductIds(),
-            'gallery'       => $product->getMediaGalleryImages(),
+            'gallery'       => $gallery,
             'products'      => $products,
-            'models'        => $models
+            'models'        => $models,
+            'similar'       => $product->getRelatedProductIds(),
+            'upsell'        => $product->getUpsellProductIds(),
+            'crosssell'     => $product->getCrosssellProductIds(),
+            "meta_keywords" => $product->getMetaKeyword(),
+            "meta_description" => $product->getMetaDescription(),
+            "meta_title"    => $product->getMetaTitle(),
+            'categories'    => array_unique($ids),
         );
+
+        return $products;
     }
 
     /**
@@ -168,54 +208,11 @@ trait Product {
         $index = 1;
 
         $products = \Mage::getResourceModel('catalog/product_collection');
-        $products->addAttributeToSelect('*');
-        $products->addAttributeToFilter('visibility', array('neq' => 1));
-        $products->addAttributeToFilter('status', 1);
-        $products->load();
 
         foreach ($products as $product) {
-
-            if (!is_null($infolog)) {
-                $infolog(sprintf('Resolving model %d/%d', $index++, count($products)));
-            }
-
-            $ids         = array();
-            $categoryIds = (int) $product->getCategoryIds();
-            $categoryId  = $categoryIds[0];
-            $type        = \Mage::getModel('catalog/category')->load($categoryId);
-
-            foreach ($product->getCategoryIds() as $id) {
-                array_push($ids, (int) $id);
-
-                // Add any parent IDs as well.
-                $category = \Mage::getModel('catalog/category')->load($id);
-
-                if ($category->parent_id) {
-                    $parentCategory = \Mage::getModel('catalog/category')->load($category->parent_id);
-
-                    if ($parentCategory->parent_id) {;
-                        array_push($ids, (int) $parentCategory->parent_id);
-                    }
-
-                    array_push($ids, (int) $category->parent_id);
-                }
-            }
-
-            $collection[] = array(
-                'id'                => (int) $product->getId(),
-                'name'              => trim($product->getName()),
-                'ident'             => trim($this->createIdent($product->getName())),
-                'price'             => (float) $product->getPrice(),
-                'image'             => (string) str_replace('localhost', self::IMAGE_PATH, $product->getMediaConfig()->getMediaUrl($product->getData('image'))),
-                'colour'            => (int) $product->getData('color'),
-                'manufacturer'      => (int) $product->getData('manufacturer'),
-                'categories'        => array_unique($ids),
-                'type'              => $type
-            );
-
+            $collection[] = $this->getProduct($product->getId());
         }
-
         return $collection;
-    }
+    } 
 
 }
