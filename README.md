@@ -69,7 +69,7 @@ Laravel API
 If you prefer to use another JS framework such as Ember or Meteor, then you're more than welcome to use the API in isolation. Below we've documented <a href="https://github.com/Wildhoney/Magento-on-Angular/blob/master/api/app/routes.php">the URLs</a> and their purposes:
 
  * `/products` &ndash; fetch all the products;
- * `/product/5` &ndash; fetch a product with the ID of 5;
+ * `/product/5?populate=custom_attributes` &ndash; fetch a product with the ID of 5, printing an additional attribute;
  * `/categories` &ndash; fetch all the categories and their sub-categories;
  * `/basket` &ndash; fetch all of the items in the basket;
  * `/basket/add/2/4` &ndash; add an item to the basket with product ID 2 and quantity 4;

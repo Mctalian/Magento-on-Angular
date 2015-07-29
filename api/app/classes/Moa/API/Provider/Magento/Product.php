@@ -1,6 +1,8 @@
 <?php
 namespace Moa\API\Provider\Magento;
 
+use Input;
+
 /**
  * Magento API provider traits for Laravel
  *
@@ -98,6 +100,13 @@ trait Product {
             "meta_title"    => $product->getMetaTitle(),
             'categories'    => array_unique($ids),
         );
+
+        if (Input::has("populate")){
+            $custom_values = explode(",",Input::get("populate"));
+            foreach ($custom_values as $i => $value) {
+                $products[] = $products[$value] = $product->getData($value);
+            }
+        }
 
         return $products;
     }
