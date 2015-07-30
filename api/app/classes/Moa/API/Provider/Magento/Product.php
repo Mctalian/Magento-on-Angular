@@ -48,7 +48,6 @@ trait Product {
         $gallery = array();
         foreach ($product->getMediaGalleryImages() as $image) {
             array_push($gallery, $image->getUrl());
-            // echo $image->getUrl();
         }  
 
         $ids = array();
@@ -65,7 +64,7 @@ trait Product {
             if ($category->parent_id) {
                 $parentCategory = \Mage::getModel('catalog/category')->load($category->parent_id);
 
-                if ($parentCategory->parent_id) {;
+                if ($parentCategory->parent_id) {
                     array_push($ids, (int) $parentCategory->parent_id);
                 }
 
@@ -75,11 +74,12 @@ trait Product {
 
         $attributeSetCollection = \Mage::getResourceModel('eav/entity_attribute_set_collection') ->load();
 
-        $products = array(
+        $ret = array(
             'id'            => $product->getId(),
             'sku'           => $product->getSku(),
             'name'          => $product->getName(),
             'type'          => $product->getTypeId(),
+            "visibility"    => $product->getVisibility(),
             'quantity'      => (int) $stockModel->getQty(),
             'friendUrl'     => $friendModel->canEmailToFriend() ? \Mage::app()->getHelper('catalog/product')->getEmailToFriendUrl($product) : null,
             'weight'     => $product->getData("weight"),
@@ -104,11 +104,11 @@ trait Product {
         if (Input::has("populate")){
             $custom_values = explode(",",Input::get("populate"));
             foreach ($custom_values as $i => $value) {
-                $products[] = $products[$value] = $product->getData($value);
+                $products[] = $products[$value] = $ret->getData($value);
             }
         }
 
-        return $products;
+        return $ret;
     }
 
     /**
@@ -219,7 +219,8 @@ trait Product {
         $products = \Mage::getResourceModel('catalog/product_collection');
 
         foreach ($products as $product) {
-            $collection[] = $this->getProduct($product->getId());
+            $productBuilt = $this->getProduct($product->getId());
+            if ($productBuilt && ($productBuilt["visibility"]!=1)) $collection[] = $productBuilt; //strip not visible products
         }
         return $collection;
     } 
