@@ -29,9 +29,12 @@ trait Product {
         if ($product->getTypeId() === 'configurable') {
 
             $products   = $this->getProductVariations($productId);
+
             $productIds = array_flatten(array_map(function($product) {
                 return $product['id'];
             }, $products['collection']));
+
+            $productIds = array_unique($productIds);
 
             foreach ($productIds as $productId) {
                 array_push($models, $this->getProduct($productId));
@@ -84,13 +87,13 @@ trait Product {
             'friendUrl'     => $friendModel->canEmailToFriend() ? \Mage::app()->getHelper('catalog/product')->getEmailToFriendUrl($product) : null,
             'weight'     => $product->getData("weight"),
             'price'         => (float) $product->getPrice(),
-            'colour'        => (int) $product->getData('color'),
+            'color'        => (int) $product->getData('color'),
+            'size'        => (int) $product->getData('size'),
             'manufacturer'  => (int) $product->getData('manufacturer'),
             'description'   => nl2br(trim($product->getDescription())),
             'short_description'   => nl2br(trim($product->getData("short_description"))),
             'largeImage'    => (string) str_replace('localhost', self::IMAGE_PATH, $product->getMediaConfig()->getMediaUrl($product->getData('image'))),
             'gallery'       => $gallery,
-            'products'      => $products,
             'models'        => $models,
             'similar'       => $product->getRelatedProductIds(),
             'upsell'        => $product->getUpsellProductIds(),
@@ -180,16 +183,18 @@ trait Product {
         $options   = array();
 
         if ($attribute->usesSource()) {
-            $options = $attribute->getSource()->getAllOptions(false);
+            $options = $attribute->getSource()->getAllOptions(false,false);
+            $options_admin = $attribute->getSource()->getAllOptions(false,true);
         }
 
         $response = array();
 
-        foreach ($options as $option) {
+        foreach ($options as $i=>$option) {
 
             $current = array(
                 'id'    => (int) $option['value'],
-                'label' => $option['label']
+                'label' => $option['label'],
+                'admin_label' => $options_admin[$i]['label']
             );
 
             if ($processCounts) {
