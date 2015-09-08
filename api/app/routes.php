@@ -11,9 +11,10 @@
 |
 */
 
-Route::get('/products', 'ProductsController@getProducts');
-
+Route::get('/products/{id}', 'ProductController@getProduct');
 Route::get('/product/{id}', 'ProductController@getProduct');
+
+Route::get('/products', 'ProductsController@getProducts');
 
 Route::get('/categories', 'CategoriesController@getCategories');
 
