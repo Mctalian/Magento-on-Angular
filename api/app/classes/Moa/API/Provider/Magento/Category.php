@@ -15,7 +15,8 @@ trait Category {
      */
     public function getCategories()
     {
-        $categories = \Mage::helper('catalog/category')->getStoreCategories();
+        // $categories = \Mage::helper('catalog/category')->getStoreCategories();
+        $categories = \Mage::getModel('catalog/category')->getCollection()->addAttributeToSelect('*');
         $collection = array();
 
         foreach ($categories as $category) {
@@ -51,7 +52,11 @@ trait Category {
                 'ident'         => $this->createIdent($category->getName()),
                 'name'          => $category->getName(),
                 'productCount'  => $productCount($category->getId()),
-                'children'      => array()
+                'children'      => array(),
+                "image"         => $category->getImageUrl(),
+                "description"   => $category->getDescription(),
+                "meta_description"   => $category->getMetaDescription(),
+                "meta_title"         => $category->getMetaTitle()
             );
 
             // Discover the category's sub-categories.
