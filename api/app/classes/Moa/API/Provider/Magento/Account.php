@@ -114,24 +114,50 @@ trait Account {
      * @param string $password
      * @return array
      */
-    public function register($firstName, $lastName, $email, $password)
+    public function register($values)
     {
-        $response = array('success' => true, 'error' => null, 'model' => array());
+        $session = \Mage::getSingleton('customer/session');
         $customer = $this->getCustomerModel();
 
         try {
 
+            if (!is_array($values)) return array('success' => false, 'message' => "customer object missing"); 
+
+            $password = $values["password"];
+            $email = $values["email"];
+
             // If new, save customer information
-            $customer->firstname     = $firstName;
-            $customer->lastname      = $lastName;
-            $customer->email         = $email;
+            $customer->firstname     = $values["firstname"];
+            $customer->lastname      = $values["lastname"];
+            $customer->email         = $values["email"];
             $customer->password_hash = md5($password);
             $customer->save();
 
+            $address = \Mage::getModel("customer/address");
+
+            $address->setCustomerId($customer->getId())
+                    ->setFirstname($customer->getFirstname())
+                    ->setMiddleName($customer->getMiddlename())
+                    ->setLastname($customer->getLastname())
+                    ->setCountryId($values["country_id"])
+                    ->setPostcode($values["postcode"])
+                    ->setCity($values["city"])
+                    ->setTelephone($values["telephone"])
+                    ->setCompany($values["company"])
+                    ->setStreet($values["street"])
+                    ->setIsDefaultBilling('1')
+                    ->setIsDefaultShipping('1')
+                    ->setSaveInAddressBook('1');
+
+            $address->save();        
+
             // Log in the newly created user.
             $this->login($email, $password);
+            // $session->login($email, $password);
 
             $account = $this->getAccount();
+
+            $response = array('success' => true, 'error' => null, 'model' => array());
             $response['model'] = $account['model'];
 
         } catch (\Exception $e) {

@@ -27,7 +27,7 @@ class OrderController extends BaseAPIController
 
     }
     public function setPaymentMethod(){
-        return Response::json($this->api->setPaymentMethod(Input::get('code')));
+        return Response::json($this->api->setPaymentMethod(Input::get('payment')));
 
     }
     public function setShippingMethod(){
@@ -43,7 +43,7 @@ class OrderController extends BaseAPIController
     }
 
     public function sendOrder(){
-        return Response::json($this->api->sendOrder());
+        return Response::json($this->api->sendOrder(Input::get('payment')));
     }
 
     public function setCouponCode(){

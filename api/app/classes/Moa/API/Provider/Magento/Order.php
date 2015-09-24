@@ -183,6 +183,43 @@ trait Order {
         $result['shipping_method'] = $quote->getShippingAddress()->getShippingMethod();
         $result['payment_method'] = $quote->getPayment()->getMethod();
 
+        $result["asdasd"] = $quote->getPayment()->getAdditionalInformation();
+
+        // $orderPayment = \Mage::getModel('sales/order_payment')
+        // ->setStoreId($store_id);
+        // ->setCustomerPaymentId(0)
+        // ->setMethod($method)
+        // ->setCcNumber($cc_number)
+        // ->setCcNumberEnc(Mage::getSingleton('payment/info')->encrypt($cc_number)
+        // ->setCcOwner($cc_owner)
+        // ->setCcType($cc_type)
+        // ->setCcExpMonth($cc_exp_month)
+        // ->setCcExpYear($cc_exp_year)
+        // ->setCcLast4(substr($cc_number,-4));
+
+        $orderPayment = \Mage::getModel('sales/order_payment')
+              ->setStoreId(1)
+              ->setCustomerPaymentId(0)
+              ->setMethod('ccsave')
+              ->setCcNumber('6011111111111117')
+              ->setCcOwner('ooooo')
+              ->setCcType('Discover')
+              ->setCcExpMonth('9')
+              ->setCcExpYear('2014')
+              ->setCcLast4(substr('6011111111111117',-4));
+
+        // $orderPayment = \Mage::getModel('sales/order_payment')
+        //           ->setStoreId(1)
+        //           ->setCustomerPaymentId(0)
+        //           ->setMethod('purchaseorder')
+        //           ->setPo_number(' - ');
+
+              
+
+        $result["storeid"] = $quote->getStore()->getStoreId();
+
+        $result["lol"] = \Mage::getModel('sales/order_payment');
+
         $result['totals'] = [];
 
         $totals = $quote->getTotals();
@@ -342,10 +379,29 @@ trait Order {
         return $this->getState();
     }
 
-    public function setPaymentMethod($code){
+    public function setPaymentMethod($values){
+
+        if (!is_array($values)) return ['success' => false, 'message' => 'payment parameter missing'];
+
         $quote = $this->getCheckoutSession()->getQuote();
 
-        $quote->getPayment()->importData(array('method' => $code));
+        $payment = $quote->getPayment();
+
+        $payment->importData($values);
+
+        // $payment->importData(array(
+        //     'cc_exp_month' => "10",
+        //     'cc_exp_year' => "2019",
+        //     'cc_type' => "MC",
+        //     'cc_number' => "5359280624203661",
+        //     'cc_owner' => "Filippo Zonta",
+        //     'cc_cid' => "427",
+        //     'method' => "ccsave"
+        //     // 'method' => $code
+        // ));
+
+        $order = \Mage::getModel('sales/order');
+        $order->setPayment($payment);
 
         $this->saveState();
 
@@ -359,13 +415,29 @@ trait Order {
         return $this->getState();
     }
 
-    public function sendOrder(){
+    public function sendOrder($values){
+        if (!is_array($values)) return ['success' => false, 'message' => 'payment parameter missing'];
+
         $quote = $this->getCheckoutSession()->getQuote();
         $quote->collectTotals()->save();
         try{
             $service = \Mage::getModel('sales/service_quote', $quote);
+            $payment = $quote->getPayment();
+
+            $payment->importData($values);
+            // $payment->importData(array(
+            //     'cc_exp_month' => "10",
+            //     'cc_exp_year' => "2019",
+            //     'cc_type' => "MC",
+            //     'cc_number' => "5359280624203661",
+            //     'cc_owner' => "Filippo Zonta",
+            //     'cc_cid' => 427,
+            //     'method' => "ccsave"
+            //     // 'method' => $code
+            // ));
             $service->submitAll();
             $order = $service->getOrder();
+
             $order->setStatus('complete');
             $order->save();
 
@@ -377,6 +449,8 @@ trait Order {
             foreach($quote->getAllVisibleItems() as $item){
                 $this->removeCartItem($item->getId());
             }
+
+            // print_r("asd");
 
         }catch(\Exception $e){
             return ['success' => false, 'message' => $e->getMessage()];

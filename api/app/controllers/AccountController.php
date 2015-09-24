@@ -17,12 +17,9 @@ class AccountController extends BaseAPIController {
 
     public function register() {
 
-        $firstName = Input::get('firstName');
-        $lastName  = Input::get('lastName');
-        $email     = Input::get('email');
-        $password  = Input::get('password');
+        $customer = Input::get("customer");
 
-        return Response::json($this->api->register($firstName, $lastName, $email, $password));
+        return Response::json($this->api->register($customer));
 
     }
 

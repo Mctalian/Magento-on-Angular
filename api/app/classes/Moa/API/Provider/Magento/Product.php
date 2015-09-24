@@ -226,6 +226,7 @@ trait Product {
         foreach ($products as $product) {
             $productBuilt = $this->getProduct($product->getId());
             if ($productBuilt && ($productBuilt["visibility"]!=1)) $collection[] = $productBuilt; //strip not visible products
+            // $collection[] = $productBuilt; //strip not visible products
         }
         return $collection;
     } 

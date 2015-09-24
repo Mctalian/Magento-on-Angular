@@ -103,7 +103,7 @@ interface ProviderInterface {
      * @param string $password
      * @return array
      */
-    public function register($firstName, $lastName, $email, $password);
+    public function register($values);
 
     /**
      * @method getAccount
