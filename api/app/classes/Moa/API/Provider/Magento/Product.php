@@ -18,16 +18,18 @@ trait Product {
      * @param int $productId
      * @return array
      */
-    public function getProduct($productId)
+    public function getProduct($productId, $populateModels)
     {
         /** @var \Mage_Catalog_Model_Product $product */
         $product    = \Mage::getModel('catalog/product')->load((int) $productId);
 
         $products   = array();
         $models     = array();
+        $ret        = array();
 
         if ($product->getTypeId() === 'configurable') {
 
+            //configurable product
             $products   = $this->getProductVariations($productId);
 
             $productIds = array_flatten(array_map(function($product) {
@@ -36,11 +38,34 @@ trait Product {
 
             $productIds = array_unique($productIds);
 
+            $ret["color"] = array();
+            $ret["size"] = array();
+
             foreach ($productIds as $productId) {
-                array_push($models, $this->getProduct($productId));
+                if ($populateModels) array_push($models, $this->getProduct($productId));
+
+                $variation = \Mage::getModel('catalog/product')->load((int) $productId);
+
+                array_push($ret["color"], (int) $variation->getData("color"));
+                array_push($ret["size"], (int) $variation->getData("size"));
             }
 
+            $ret["color"] = array_values(array_unique($ret["color"]));
+            $ret["size"] = array_values(array_unique($ret["size"]));
         }
+        else {
+            //simple product
+
+            $ret["color"] = (int) $product->getData("color");
+            $ret["size"] = (int) $product->getData("size");
+            // if (Input::has("populate")){
+            //     $custom_values = explode(",",Input::get("populate"));
+            //     foreach ($custom_values as $i => $value) {
+            //         $products[] = $products[$value] = $ret->getData($value);
+            //     }
+            // }
+        }
+
 
         /** @var \Mage_Sendfriend_Model_Sendfriend $friendModel */
         $friendModel = \Mage::getModel('sendfriend/sendfriend');
@@ -77,7 +102,7 @@ trait Product {
 
         $attributeSetCollection = \Mage::getResourceModel('eav/entity_attribute_set_collection') ->load();
 
-        $ret = array(
+        $ret = array_merge($ret, array(
             'id'            => $product->getId(),
             'sku'           => $product->getSku(),
             'name'          => $product->getName(),
@@ -87,8 +112,8 @@ trait Product {
             'friendUrl'     => $friendModel->canEmailToFriend() ? \Mage::app()->getHelper('catalog/product')->getEmailToFriendUrl($product) : null,
             'weight'     => $product->getData("weight"),
             'price'         => (float) $product->getPrice(),
-            'color'        => (int) $product->getData('color'),
-            'size'        => (int) $product->getData('size'),
+            // 'color'        => (int) $product->getData('color'),
+            // 'size'        => (int) $product->getData('size'),
             'manufacturer'  => (int) $product->getData('manufacturer'),
             'description'   => nl2br(trim($product->getDescription())),
             'short_description'   => nl2br(trim($product->getData("short_description"))),
@@ -102,14 +127,7 @@ trait Product {
             "meta_description" => $product->getMetaDescription(),
             "meta_title"    => $product->getMetaTitle(),
             'categories'    => array_unique($ids),
-        );
-
-        if (Input::has("populate")){
-            $custom_values = explode(",",Input::get("populate"));
-            foreach ($custom_values as $i => $value) {
-                $products[] = $products[$value] = $ret->getData($value);
-            }
-        }
+        ));
 
         return $ret;
     }
@@ -194,6 +212,7 @@ trait Product {
             $current = array(
                 'id'    => (int) $option['value'],
                 'label' => $option['label'],
+                'position' => $option['position'],
                 'admin_label' => $options_admin[$i]['label']
             );
 
@@ -224,7 +243,7 @@ trait Product {
         $products = \Mage::getResourceModel('catalog/product_collection');
 
         foreach ($products as $product) {
-            $productBuilt = $this->getProduct($product->getId());
+            $productBuilt = $this->getProduct($product->getId(),false);
             if ($productBuilt && ($productBuilt["visibility"]!=1)) $collection[] = $productBuilt; //strip not visible products
             // $collection[] = $productBuilt; //strip not visible products
         }

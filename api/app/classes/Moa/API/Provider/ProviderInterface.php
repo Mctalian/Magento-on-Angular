@@ -20,9 +20,10 @@ interface ProviderInterface {
      *
      * @method getProduct
      * @param int $productId
+     * @param bool $populateModels
      * @return array
      */
-    public function getProduct($productId);
+    public function getProduct($productId, $populateModels);
 
     /**
      * Returns product information for child SKUs of product (colors, sizes, etc).

@@ -8,7 +8,7 @@ class ProductController extends BaseAPIController {
      * @return string
      */
     public function getProduct($productId) {
-        return Response::json($this->api->getProduct($productId));
+        return Response::json($this->api->getProduct($productId, true));
     }
 
 }
