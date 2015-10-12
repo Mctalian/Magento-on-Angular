@@ -60,12 +60,18 @@ trait Cart {
      */
     public function removeCartItem($id)
     {
-        \Mage::getSingleton('checkout/cart')->getQuote()->removeItem($id)->save();
 
-        return array(
-            'success' => \Mage::getModel('checkout/cart')->save(),
-            'models'  => $this->getCartItems()
-        );
+        try{
+            \Mage::getSingleton('checkout/cart')->getQuote()->removeItem($id)->save();
+            return array(
+                'success' => \Mage::getModel('checkout/cart')->save(),
+                'models'  => $this->getCartItems()
+            );
+        }
+        catch(\Exception $e){
+            print_r("\nporcodio\n");
+        }
+
     }
 
     /**
