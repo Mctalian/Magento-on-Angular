@@ -45,4 +45,4 @@ Route::post('checkout/setDiscountCode', 'OrderController@setDiscountCode');
 Route::get('checkout/countryList', 'OrderController@getCountryList');
 Route::get('checkout/regionsByCountry/{country}', 'OrderController@getRegionsByCountry');
 Route::post('checkout/send', 'OrderController@sendOrder');
-Route::post('/instagram/photos','InstagramController@getPhotos');
+Route::get('/instagram/photos','InstagramController@getPhotos');

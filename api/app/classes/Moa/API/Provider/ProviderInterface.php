@@ -111,5 +111,11 @@ interface ProviderInterface {
      * @return array
      */
     public function getAccount();
+
+    /**
+     * @method getPhotos
+     * @return array
+     */
+    public function getPhotos();
     
 }

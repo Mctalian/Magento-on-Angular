@@ -20,7 +20,8 @@ class MagentoProvider extends AbstractProvider implements ProviderInterface {
         Magento\Category,
         Magento\Currency,
         Magento\Product,
-        Magento\Order;
+        Magento\Order,
+        Magento\Instagram;
 
     /**
      * Initialize the Mage environment.
